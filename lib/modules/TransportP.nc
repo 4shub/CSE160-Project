@@ -132,7 +132,7 @@ implementation{
          return SUCCESS;
       }
 
-      dbg("Project3TGen", "Error: can't bind!\n");
+      dbg(TRANSPORT_CHANNEL, "Error: can't bind!\n");
       return FAIL;
    }
 
@@ -228,7 +228,7 @@ implementation{
 
       switch (payload -> flag) {
          case SYN :
-            dbg("Project3TGen", "SYN packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "SYN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.checkIfPortIsListening(payload -> destPort);
             if (socketLocation != -1) {
@@ -236,12 +236,12 @@ implementation{
                return SUCCESS;
             }
 
-            dbg("Project3TGen", "Could not find listening port\n");
+            dbg(TRANSPORT_CHANNEL, "Could not find listening port\n");
             return FAIL;
             break;
 
          case SYN_ACK :
-            dbg("Project3TGen", "SYN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "SYN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_SYN_SENT);
 
@@ -263,7 +263,7 @@ implementation{
             break;
 
          case ACK :
-            dbg("Project3TGen", "ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
 
             if (socketLocation != -1) {
@@ -295,7 +295,7 @@ implementation{
             break;
 
          case DATA :
-            dbg("Project3TGen", "DATA packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "DATA packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
             if (socketLocation != -1) {
@@ -318,7 +318,7 @@ implementation{
             break;
 
          case FIN :
-            dbg("Project3TGen", "FIN packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "FIN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // there are 3 cases we have for FIN, if the socket is established, if the socket is waiting to close, and if the socket is closed
 
@@ -343,7 +343,7 @@ implementation{
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;
 
-                dbg("Project3TGen", "Connection Closed\n");
+                dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
                 return SUCCESS;
             }
 
@@ -357,13 +357,13 @@ implementation{
                 return SUCCESS;
             }
 
-            dbg("Project3TGen", "Error: connection failed\n");
+            dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
             return FAIL;
             break;
 
 
          case FIN_ACK :
-            dbg("Project3TGen", "FIN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(TRANSPORT_CHANNEL, "FIN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // check if the socket is waiting to end
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_FIN_WAIT);
@@ -372,11 +372,11 @@ implementation{
                 call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;
-                dbg("Project3TGen", "Connection Closed\n");
+                dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
                 return SUCCESS;
             }
 
-            dbg("Project3TGen", "Error: connection failed\n");
+            dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
             return FAIL;
 
             break;
@@ -403,7 +403,7 @@ implementation{
 
          return SUCCESS;
       } else {
-         dbg("Project3TGen", "Socket not found\n");
+         dbg(TRANSPORT_CHANNEL, "Socket not found\n");
          return FAIL;
       }
    }
