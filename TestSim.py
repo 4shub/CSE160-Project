@@ -18,6 +18,7 @@ class TestSim:
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
     GENERAL_CHANNEL="general";
+    P3_CHANNEL="Project3TGen";
 
     # Project 1
     NEIGHBOR_CHANNEL="neighbor";
@@ -140,13 +141,13 @@ def main():
     s.bootAll();
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
-    s.addChannel(s.TRANSPORT_CHANNEL);
+    s.addChannel(s.P3_CHANNEL);
 
     s.runTime(250);
     s.setTestServer(2, 20);
-    s.setTestServer(3, 20);
-    s.setTestClient(3, 2, 20, 20, 'data');
-    s.runTime(250);
+    s.runTime(100);
+    s.setTestClient(3, 2, 20, 21, 'triple e gold');
+    s.runTime(500);
 
 if __name__ == '__main__':
     main()

@@ -16,6 +16,8 @@ module TransportP{
     uses interface LiveSocketList;
 
     uses interface WindowManager;
+
+    uses interface Random;
 }
 
 implementation{
@@ -25,7 +27,7 @@ implementation{
    uint8_t data[TCP_MAX_DATA_SIZE];
    uint8_t MAX_NODE_COUNT = 999;
 
-   uint16_t assignSocketID();
+   socket_t assignSocketID();
 
    socket_addr_t assignTempAddress(nx_uint8_t srcPort, nx_uint8_t destPort, nx_uint16_t srcAddr, nx_uint16_t destAddr);
 
@@ -63,19 +65,19 @@ implementation{
 
        row = call RouterTable.get(nextDestination);
 
+
        if(row.distance == 1) {
            call Sender.send(sendPackage, finalDestination);
        } else {
            call Sender.send(sendPackage, row.nextNode);
        }
-
    }
 
-   uint16_t assignSocketID() {
-       uint16_t socketID = 1;
+   socket_t assignSocketID() {
+       socket_t socketID = 0;
 
-       while (call SocketPointerMap.contains(socketID)) {
-           socketID++;
+       while (socketID == 0 || call SocketPointerMap.contains(socketID)) {
+           socketID = call Random.rand16();
        }
 
        return socketID;
@@ -86,11 +88,42 @@ implementation{
    }
 
    command error_t Transport.connect(socket_t fd, socket_addr_t * addr) {
-       return FAIL;
+        socket_storage_t* temp_socket;
+
+        dbg(NEIGHBOR_CHANNEL, "Attempting to connect to socket-%d\n", fd);
+
+        if (call SocketPointerMap.contains(fd)) {
+            temp_socket = call SocketPointerMap.get(fd);
+
+            makeTCPPack(&sendPayload,
+                        temp_socket->sockAddr.srcPort,
+                        temp_socket->sockAddr.destPort,
+                        0,
+                        SYN,
+                        0,
+                        sendPayload.data,
+                        TCP_MAX_DATA_SIZE);
+
+            makePack(&sendPackage,
+                     temp_socket->sockAddr.srcAddr,
+                     temp_socket->sockAddr.destAddr,
+                     MAX_TTL,
+                     PROTOCOL_TCP,
+                     seqNum,
+                     &sendPayload,
+                     PACKET_MAX_PAYLOAD_SIZE);
+
+            sendWithTimerPing(&sendPackage);
+
+            temp_socket->state = SOCK_SYN_SENT;
+            return SUCCESS;
+        }
+        dbg(NEIGHBOR_CHANNEL, "Error attempting connection\n");
+        return FAIL;
    }
 
    command socket_t Transport.socket() {
-        int pointerLocation = -1;
+        int socketLocation = -1;
         socket_t fd;
         socket_storage_t tempSocket;
                          tempSocket.state = SOCK_CLOSED;
@@ -103,20 +136,22 @@ implementation{
                          tempSocket.lastByteRead = 0;
                          tempSocket.lastByteExpected = 0;
 
+
         if (call SocketPointerMap.size() > MAX_SOCKET_COUNT) {
             return NULL_SOCKET;
         }
 
         fd = assignSocketID();
-        pointerLocation = call LiveSocketList.insert(fd, tempSocket);
 
-        if (pointerLocation != -1) {
-            call SocketPointerMap.insert(fd, call LiveSocketList.getStore(pointerLocation));
+        socketLocation = call LiveSocketList.insert(fd, tempSocket);
 
-            return fd;
+        if (socketLocation != -1) {
+            call SocketPointerMap.insert(fd, call LiveSocketList.getStore(socketLocation));
         }
 
-        return NULL_SOCKET;
+        dbg(NEIGHBOR_CHANNEL, "New socket: %d\n", fd);
+
+        return fd;
    }
 
    command error_t Transport.bind(socket_t fd, socket_addr_t *socketAddress) {
@@ -129,6 +164,7 @@ implementation{
          tempSocketAddress -> sockAddr.srcAddr  = socketAddress -> srcAddr;
          tempSocketAddress -> sockAddr.destAddr = socketAddress -> destAddr;
 
+         dbg(NEIGHBOR_CHANNEL,"Bounded client to server!\n");
          return SUCCESS;
       }
 
@@ -137,11 +173,13 @@ implementation{
    }
 
    command socket_t Transport.accept() {
-        socket_t fd = call Transport.socket();
+        socket_t fd;
         socket_storage_t* tempSocket;
 
         socket_addr_t newConnection = call Connections.popfront();
         socket_addr_t socketAddress;
+        dbg(NEIGHBOR_CHANNEL,"Connection accepted!\n");
+        fd = call Transport.socket();
 
         if (fd != NULL_SOCKET) {
             // reverse the address
@@ -154,9 +192,23 @@ implementation{
               tempSocket = call SocketPointerMap.get(fd);
 
                // SYN_ACK
-               makeTCPPack(&sendPayload, socketAddress.srcPort, socketAddress.destPort, 0, SYN_ACK, 0, sendPayload.data, TCP_MAX_DATA_SIZE);
+               makeTCPPack(&sendPayload,
+                           socketAddress.srcPort,
+                           socketAddress.destPort,
+                           0,
+                           SYN_ACK,
+                           0,
+                           sendPayload.data,
+                           TCP_MAX_DATA_SIZE);
 
-               makePack(&sendPackage, socketAddress.srcAddr, socketAddress.destAddr, MAX_TTL, PROTOCOL_TCP, seqNum, &sendPayload, PACKET_MAX_PAYLOAD_SIZE);
+               makePack(&sendPackage,
+                        socketAddress.srcAddr,
+                        socketAddress.destAddr,
+                        MAX_TTL,
+                        PROTOCOL_TCP,
+                        seqNum,
+                        &sendPayload,
+                        PACKET_MAX_PAYLOAD_SIZE);
 
                seqNum++;
 
@@ -203,9 +255,23 @@ implementation{
 
 
 
-            makeTCPPack(&sendPayload, tempSocket->sockAddr.srcPort, tempSocket->sockAddr.destPort, tempSeqNum, flag, advertisedWindow, &data, TCP_MAX_DATA_SIZE);
+            makeTCPPack(&sendPayload,
+                        tempSocket->sockAddr.srcPort,
+                        tempSocket->sockAddr.destPort,
+                        tempSeqNum,
+                        flag,
+                        advertisedWindow,
+                        &data,
+                        TCP_MAX_DATA_SIZE);
 
-            makePack(&sendPackage, tempSocket->sockAddr.srcAddr, tempSocket->sockAddr.destAddr, MAX_TTL, PROTOCOL_TCP, tempSeqNum, &sendPayload, PACKET_MAX_PAYLOAD_SIZE);
+            makePack(&sendPackage,
+                     tempSocket->sockAddr.srcAddr,
+                     tempSocket->sockAddr.destAddr,
+                     MAX_TTL,
+                     PROTOCOL_TCP,
+                     seqNum,
+                     &sendPayload,
+                     PACKET_MAX_PAYLOAD_SIZE);
 
             tempSeqNum++;
             sendWithTimerPing(&sendPackage);
@@ -214,9 +280,7 @@ implementation{
    }
 
    command error_t Transport.receive(pack* package) {
-      uint16_t tempseqNum;
       socket_storage_t *tempSocket;
-      socket_addr_t tempAddr;
       TCP_packet_t *payload = (TCP_packet_t*)package->payload;
 
       socket_addr_t socketAddress = assignTempAddress(payload -> srcPort,
@@ -227,12 +291,15 @@ implementation{
       uint8_t i;
 
       switch (payload -> flag) {
-         case SYN :
+         case SYN:
             dbg(NEIGHBOR_CHANNEL,"SYN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.checkIfPortIsListening(payload -> destPort);
+
+
             if (socketLocation != -1) {
-               call Connections.pushback(tempAddr);
+               call Connections.pushback(socketAddress);
+
                return SUCCESS;
             }
 
@@ -240,21 +307,36 @@ implementation{
             return FAIL;
             break;
 
-         case SYN_ACK :
+         case SYN_ACK:
             dbg(NEIGHBOR_CHANNEL,"SYN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_SYN_SENT);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_SYN_SENT);
 
             if (socketLocation != -1) {
 
-               tempSocket = call LiveSocketList.getFd(socketLocation);
+               tempSocket = call LiveSocketList.getStore(socketLocation);
                tempSocket -> state = SOCK_ESTABLISHED;
 
-               makeTCPPack(&sendPayload, tempSocket->sockAddr.srcPort, tempSocket->sockAddr.destPort, 0, ACK, 0, payload->data, TCP_MAX_DATA_SIZE);
+               makeTCPPack(&sendPayload,
+                           tempSocket->sockAddr.srcPort,
+                           tempSocket->sockAddr.destPort,
+                           0,
+                           ACK,
+                           0,
+                           payload->data,
+                           TCP_MAX_DATA_SIZE);
 
-               makePack(&sendPackage, tempSocket->sockAddr.srcAddr, tempSocket->sockAddr.destAddr, MAX_TTL, PROTOCOL_TCP, seqNum, &sendPayload, PACKET_MAX_PAYLOAD_SIZE);
+               makePack(&sendPackage,
+                        tempSocket->sockAddr.srcAddr,
+                        tempSocket->sockAddr.destAddr,
+                        MAX_TTL,
+                        PROTOCOL_TCP,
+                        seqNum,
+                        &sendPayload,
+                        PACKET_MAX_PAYLOAD_SIZE);
 
                seqNum++;
+
                sendWithTimerPing(&sendPackage);
                return SUCCESS;
             }
@@ -262,54 +344,62 @@ implementation{
             return FAIL;
             break;
 
-         case ACK :
+         case ACK:
             dbg(NEIGHBOR_CHANNEL,"ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
 
-            if (socketLocation != -1) {
-                tempSocket = call LiveSocketList.getFd(socketLocation);
-                tempSocket -> state = SOCK_FIN_WAIT;
-                call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_ESTABLISHED);
+
+            if (socketLocation != -1 && socketLocation != 255) {
+
+                if (call WindowManager.receiveACK(call LiveSocketList.getFd(socketLocation), payload) == FIN) {
+                    tempSocket = call LiveSocketList.getStore(socketLocation);
+                    tempSocket -> state = SOCK_FIN_WAIT;
+
+                    call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
+                }
 
                 return SUCCESS;
             }
 
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_SYN_SENT);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_SYN_SENT);
 
-            if (socketLocation != -1) {
-                tempSocket = call LiveSocketList.getFd(socketLocation);
+            if (socketLocation != -1 && socketLocation != 255) {
+                tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket -> state = SOCK_ESTABLISHED;
 
+                dbg(NEIGHBOR_CHANNEL,"Connection established with node://%d:%d\n", package->src, payload->destPort);
                 return SUCCESS;
             }
 
-            // if we're waiting for a fin
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_FIN_WAIT);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_FIN_WAIT);
 
-            if (socketLocation != -1) {
+            if (socketLocation != -1 && socketLocation != 255) {
                 return SUCCESS;
             }
 
+            dbg(NEIGHBOR_CHANNEL, "Error: No connection\n");
             return FAIL;
 
             break;
 
-         case DATA :
+         case DATA:
             dbg(NEIGHBOR_CHANNEL,"DATA packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
-            if (socketLocation != -1) {
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_ESTABLISHED);
 
+            if (socketLocation != -1 && socketLocation != 255) {
                 call WindowManager.receiveData(call LiveSocketList.getFd(socketLocation), payload);
 
                 call Transport.write(call LiveSocketList.getFd(socketLocation), ACK);
                 return SUCCESS;
             }
 
-           socketLocation = call LiveSocketList.search(&tempAddr, SOCK_SYN_SENT);
+           socketLocation = call LiveSocketList.search(&socketAddress, SOCK_SYN_SENT);
 
-           if (socketLocation != -1) {
-              tempSocket = call LiveSocketList.getFd(socketLocation);
+
+
+           if (socketLocation != -1 && socketLocation != 255) {
+              tempSocket = call LiveSocketList.getStore(socketLocation);
               tempSocket->state = SOCK_ESTABLISHED;
            }
 
@@ -317,14 +407,14 @@ implementation{
 
             break;
 
-         case FIN :
+         case FIN:
             dbg(NEIGHBOR_CHANNEL,"FIN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // there are 3 cases we have for FIN, if the socket is established, if the socket is waiting to close, and if the socket is closed
 
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_ESTABLISHED);
 
-            if (socketLocation != -1) {
+            if (socketLocation != -1 && socketLocation != 255) {
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 if (tempSocket->lastByteRec >= payload->seq) {
                     tempSocket->state = SOCK_CLOSE_WAIT;
@@ -337,9 +427,9 @@ implementation{
             }
 
             // Check if we're closing the socket
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_CLOSE_WAIT);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_CLOSE_WAIT);
 
-            if (socketLocation != -1) {
+            if (socketLocation != -1 && socketLocation != 255) {
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;
 
@@ -348,9 +438,9 @@ implementation{
             }
 
             // Check if the socket is closed
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_CLOSED);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_CLOSED);
 
-            if (socketLocation != -1) {
+            if (socketLocation != -1 && socketLocation != 255) {
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 call Transport.write(call LiveSocketList.getFd(socketLocation), FIN_ACK);
 
@@ -362,13 +452,13 @@ implementation{
             break;
 
 
-         case FIN_ACK :
+         case FIN_ACK:
             dbg(NEIGHBOR_CHANNEL,"FIN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // check if the socket is waiting to end
-            socketLocation = call LiveSocketList.search(&tempAddr, SOCK_FIN_WAIT);
+            socketLocation = call LiveSocketList.search(&socketAddress, SOCK_FIN_WAIT);
 
-            if (socketLocation != -1) {
+            if (socketLocation != -1 && socketLocation != 255) {
                 call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;

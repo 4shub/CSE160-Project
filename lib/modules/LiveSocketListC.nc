@@ -24,19 +24,13 @@ implementation {
    uint16_t socketCount = 0;
 
    command int LiveSocketList.insert(socket_t fd, socket_storage_t socket) {
-      int socketLocation;
+       socketCount++;
 
-      while(socketCount < MAX_SOCKET_COUNT) {
-          if(!socketList[socketLocation].inUse){
-              socketList[socketLocation] = createNewSocket(TRUE, fd, socket);
-              socketCount++;
+       socketList[socketCount] = createNewSocket(TRUE, fd, socket);
 
-              return socketLocation;
-          }
-          socketLocation++;
-      }
+       dbg(NEIGHBOR_CHANNEL,"socketLocation://%d\n", socketCount);
 
-      return -1;
+       return socketCount;
    }
 
    command socket_storage_t* LiveSocketList.getStore(uint16_t socketLocation) {
@@ -70,6 +64,7 @@ implementation {
               connection->srcPort == socketList[i].store.sockAddr.destPort &&
               connection->srcAddr == socketList[i].store.sockAddr.destAddr &&
               connection->destAddr == socketList[i].store.sockAddr.srcAddr) {
+
 
               return i;
            }

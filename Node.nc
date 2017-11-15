@@ -122,7 +122,39 @@ implementation{
 
       uint16_t messageHash = generateUniqueMessageHash(recievedPackage -> payload, recievedPackage -> dest, recievedPackage -> seq);
 
-      //dbg(GENERAL_CHANNEL, "Packet Received from SOURCE: %i\n", recievedPackage -> src);
+
+
+      if (recievedPackage -> protocol == PROTOCOL_TCP) {
+        if (recievedPackage -> dest == TOS_NODE_ID) {
+            // arrived
+            dbg(NEIGHBOR_CHANNEL, "Client data recieved from: %i\n", recievedPackage -> src);
+
+            call Transport.receive(recievedPackage);
+
+            return msg;
+        }
+
+        recievedPackage -> TTL = recievedPackage -> TTL - 1;
+
+        if (recievedPackage -> TTL > 0) {
+            makePack(&sendPackage,
+                      TOS_NODE_ID,
+                      recievedPackage -> dest,
+                      recievedPackage -> TTL,
+                      0,
+                      recievedPackage -> seq,
+                      recievedPackage -> payload,
+                      PACKET_MAX_PAYLOAD_SIZE);
+
+            // SEND new Package
+            sendWithTimerPing(&sendPackage);
+
+            return msg;
+        }
+
+        dbg(NEIGHBOR_CHANNEL, "TCP Timed out");
+        return msg;
+      }
 
       // CASE: our Prootocol is for a normal message
       if(recievedPackage -> protocol == 0) {
@@ -400,7 +432,7 @@ implementation{
             socketAddress.destPort = 0;
 
             if (call Transport.bind(fd, &socketAddress) == SUCCESS) {
-                dbg(NEIGHBOR_CHANNEL,"%d bound to port-%d\n", fd, port);
+                dbg(NEIGHBOR_CHANNEL,"socket %d binded to port-%d\n", fd, port);
                 call Transport.listen(fd);
                 call AttemptConnection.startPeriodic(1000);
 
@@ -443,6 +475,8 @@ implementation{
 
         uint16_t *transferSize = (uint16_t*) transfer;
 
+        dbg(NEIGHBOR_CHANNEL,"Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
+
         socketAddress.srcAddr = TOS_NODE_ID;
         socketAddress.srcPort = srcPort;
         socketAddress.destAddr = dest;
@@ -463,14 +497,14 @@ implementation{
            tempSocket = call SocketPointerMap.get(socketKeys[i]);
 
            if (tempSocket -> state == SOCK_ESTABLISHED) {
-               dbg(NEIGHBOR_CHANNEL,"Connection established. Sending TCP.\n");
+               dbg(NEIGHBOR_CHANNEL,"Connection established - Sending DATA\n");
 
               call WindowManager.init(socketKeys[i]);
               call Transport.write(socketKeys[i], DATA);
 
            } else if (tempSocket->state == SOCK_SYN_SENT) {
               if (tempSocket->timeout == 0) {
-                 dbg(NEIGHBOR_CHANNEL,"Connection Failed. Retrying now.\n");
+                 dbg(NEIGHBOR_CHANNEL,"Connection Failed - Retrying\n");
 
                  call Transport.connect(socketKeys[i], &tempSocket->sockAddr);
                  tempSocket -> timeout = 6;
@@ -481,7 +515,7 @@ implementation{
 
            } else if (tempSocket->state == SOCK_FIN_WAIT) {
               if (tempSocket->timeout == 0) {
-                 dbg(NEIGHBOR_CHANNEL,"Sending of FIN failed.  Retrying now.\n");
+                 dbg(NEIGHBOR_CHANNEL,"Connection Failed - Retrying\n");
 
                  call Transport.write(socketKeys[i], FIN);
 

@@ -78,4 +78,7 @@ implementation {
     Node.SocketPointerMap -> HashmapC3;
     TransportP.SocketPointerMap -> HashmapC3;
     WindowManagerP.SocketPointerMap -> HashmapC3;
+
+    components RandomC;
+    TransportP.Random -> RandomC;
 }
