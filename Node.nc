@@ -391,7 +391,7 @@ implementation{
         socket_t fd = call Transport.socket();
         socket_addr_t socketAddress;
 
-        dbg(TRANSPORT_CHANNEL, "Init server at port-%d\n", port);
+        dbg(NEIGHBOR_CHANNEL "Init server at port-%d\n", port);
 
         if (fd != NULL_SOCKET) {
             socketAddress.srcAddr = TOS_NODE_ID;
@@ -400,18 +400,18 @@ implementation{
             socketAddress.destPort = 0;
 
             if (call Transport.bind(fd, &socketAddress) == SUCCESS) {
-                dbg(TRANSPORT_CHANNEL, "%d bound to port-%d\n", fd, port);
+                dbg(NEIGHBOR_CHANNEL "%d bound to port-%d\n", fd, port);
                 call Transport.listen(fd);
                 call AttemptConnection.startPeriodic(1000);
 
                 return;
             }
 
-            dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
+            dbg(NEIGHBOR_CHANNEL "Server could not be set up\n");
             return;
        }
 
-       dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
+       dbg(NEIGHBOR_CHANNEL "Server could not be set up\n");
        return;
    }
 
@@ -463,14 +463,14 @@ implementation{
            tempSocket = call SocketPointerMap.get(socketKeys[i]);
 
            if (tempSocket -> state == SOCK_ESTABLISHED) {
-               dbg(TRANSPORT_CHANNEL, "Connection established. Sending TCP.\n");
+               dbg(NEIGHBOR_CHANNEL "Connection established. Sending TCP.\n");
 
               call WindowManager.init(socketKeys[i]);
               call Transport.write(socketKeys[i], DATA);
 
            } else if (tempSocket->state == SOCK_SYN_SENT) {
               if (tempSocket->timeout == 0) {
-                 dbg(TRANSPORT_CHANNEL, "Connection Failed. Retrying now.\n");
+                 dbg(NEIGHBOR_CHANNEL "Connection Failed. Retrying now.\n");
 
                  call Transport.connect(socketKeys[i], &tempSocket->sockAddr);
                  tempSocket -> timeout = 6;
@@ -481,7 +481,7 @@ implementation{
 
            } else if (tempSocket->state == SOCK_FIN_WAIT) {
               if (tempSocket->timeout == 0) {
-                 dbg(TRANSPORT_CHANNEL, "Sending of FIN failed.  Retrying now.\n");
+                 dbg(NEIGHBOR_CHANNEL "Sending of FIN failed.  Retrying now.\n");
 
                  call Transport.write(socketKeys[i], FIN);
 

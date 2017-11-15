@@ -132,7 +132,7 @@ implementation{
          return SUCCESS;
       }
 
-      dbg(TRANSPORT_CHANNEL, "Error: can't bind!\n");
+      dbg(NEIGHBOR_CHANNEL "Error: can't bind!\n");
       return FAIL;
    }
 
@@ -228,7 +228,7 @@ implementation{
 
       switch (payload -> flag) {
          case SYN :
-            dbg(TRANSPORT_CHANNEL, "SYN packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "SYN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.checkIfPortIsListening(payload -> destPort);
             if (socketLocation != -1) {
@@ -236,12 +236,12 @@ implementation{
                return SUCCESS;
             }
 
-            dbg(TRANSPORT_CHANNEL, "Could not find listening port\n");
+            dbg(NEIGHBOR_CHANNEL "Could not find listening port\n");
             return FAIL;
             break;
 
          case SYN_ACK :
-            dbg(TRANSPORT_CHANNEL, "SYN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "SYN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_SYN_SENT);
 
@@ -263,7 +263,7 @@ implementation{
             break;
 
          case ACK :
-            dbg(TRANSPORT_CHANNEL, "ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
 
             if (socketLocation != -1) {
@@ -295,7 +295,7 @@ implementation{
             break;
 
          case DATA :
-            dbg(TRANSPORT_CHANNEL, "DATA packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "DATA packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_ESTABLISHED);
             if (socketLocation != -1) {
@@ -318,7 +318,7 @@ implementation{
             break;
 
          case FIN :
-            dbg(TRANSPORT_CHANNEL, "FIN packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "FIN packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // there are 3 cases we have for FIN, if the socket is established, if the socket is waiting to close, and if the socket is closed
 
@@ -343,7 +343,7 @@ implementation{
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;
 
-                dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
+                dbg(NEIGHBOR_CHANNEL "Connection Closed\n");
                 return SUCCESS;
             }
 
@@ -357,13 +357,13 @@ implementation{
                 return SUCCESS;
             }
 
-            dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
+            dbg(NEIGHBOR_CHANNEL "Error: connection failed\n");
             return FAIL;
             break;
 
 
          case FIN_ACK :
-            dbg(TRANSPORT_CHANNEL, "FIN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
+            dbg(NEIGHBOR_CHANNEL "FIN_ACK packet arrived from node://%d:%d\n", package->src, payload->destPort);
 
             // check if the socket is waiting to end
             socketLocation = call LiveSocketList.search(&tempAddr, SOCK_FIN_WAIT);
@@ -372,11 +372,11 @@ implementation{
                 call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
                 tempSocket = call LiveSocketList.getStore(socketLocation);
                 tempSocket->state = SOCK_CLOSED;
-                dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
+                dbg(NEIGHBOR_CHANNEL "Connection Closed\n");
                 return SUCCESS;
             }
 
-            dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
+            dbg(NEIGHBOR_CHANNEL "Error: connection failed\n");
             return FAIL;
 
             break;
@@ -403,7 +403,7 @@ implementation{
 
          return SUCCESS;
       } else {
-         dbg(TRANSPORT_CHANNEL, "Socket not found\n");
+         dbg(NEIGHBOR_CHANNEL "Socket not found\n");
          return FAIL;
       }
    }
