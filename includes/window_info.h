@@ -13,7 +13,7 @@ enum {
 typedef struct{
     bool completed; // endOfDataReached
     uint16_t size; // transferSize
-    uint16_t prev; // lastValue
+    uint16_t prevValue; // lastValue
     uint8_t dataTransfer; // inFlight
     uint8_t maxDataTransfer; // maxInFlight
     uint8_t timeout; // closeTime

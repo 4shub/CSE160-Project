@@ -1,12 +1,10 @@
-typedef struct {
-   bool inUse;
-   socket_t fd;
-   socket_storage_t store;
-} socket_object_t;
+#include "../../includes/socket.h"
 
-module LiveSocketListC {
-   provides interface LiveSocketList;
-}
+typedef struct socket_object_t{
+    bool inUse;
+    socket_t fd;
+    socket_storage_t store;
+}socket_object_t;
 
 socket_object_t createNewSocket(bool status, socket_t fd, socket_storage_t store) {
    socket_object_t socketObject;
@@ -17,16 +15,21 @@ socket_object_t createNewSocket(bool status, socket_t fd, socket_storage_t store
    return socketObject;
 }
 
+module LiveSocketListC {
+   provides interface LiveSocketList;
+}
+
 implementation {
-   socket_object_t socketList[MAX_NUM_SOCKETS];
+   socket_object_t socketList[MAX_SOCKET_COUNT];
    uint16_t socketCount = 0;
 
    command int LiveSocketList.insert(socket_t fd, socket_storage_t socket) {
       int socketLocation;
 
-      while(socketCount < MAX_NUM_SOCKETS) {
+      while(socketCount < MAX_SOCKET_COUNT) {
           if(!socketList[socketLocation].inUse){
               socketList[socketLocation] = createNewSocket(TRUE, fd, socket);
+              socketCount++;
 
               return socketLocation;
           }
@@ -37,19 +40,19 @@ implementation {
    }
 
    command socket_storage_t* LiveSocketList.getStore(uint16_t socketLocation) {
-      return &container[socketLocation].store;
+      return &socketList[socketLocation].store;
    }
 
    command socket_t LiveSocketList.getFd(uint16_t socketLocation) {
-      return container[socketLocation].fd;
+      return socketList[socketLocation].fd;
    }
 
    command int LiveSocketList.checkIfPortIsListening(uint8_t destPort) {
       int i;
-      for (i = 0; i <= maxIndex; i++) {
-         if (container[i].inUse &&
-             container[i].store.state == SOCK_LISTEN &&
-             container[i].store.sockAddr.src === destPort) {
+      for (i = 0; i <= socketCount; i++) {
+         if (socketList[i].inUse &&
+             socketList[i].store.state == SOCK_LISTEN &&
+             socketList[i].store.sockAddr.srcPort == destPort) {
              return i;
          }
       }
@@ -60,13 +63,13 @@ implementation {
    command int LiveSocketList.search(socket_addr_t *connection, socketState status) {
       int i;
 
-      for (i = 0; i <= maxIndex; i++) {
-           if (container[i].inUse &&
-              container[i].store.state == status &&
-              connection->dest == container[i].store.sockAddr.srcPort &&
-              connection->src == container[i].store.sockAddr.destPort &&
-              connection->srcAddr == container[i].store.sockAddr.destAddr &&
-              connection->destAddr == container[i].store.sockAddr.srcAddr) {
+      for (i = 0; i <= socketCount; i++) {
+           if (socketList[i].inUse &&
+              socketList[i].store.state == status &&
+              connection->destPort == socketList[i].store.sockAddr.srcPort &&
+              connection->srcPort == socketList[i].store.sockAddr.destPort &&
+              connection->srcAddr == socketList[i].store.sockAddr.destAddr &&
+              connection->destAddr == socketList[i].store.sockAddr.srcAddr) {
 
               return i;
            }

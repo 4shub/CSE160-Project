@@ -54,7 +54,7 @@ module Node{
 
    uses interface LiveSocketList;
 
-   uses interface Hashmap<socket_storage_t> as SocketPointerMap;
+   uses interface Hashmap<socket_storage_t*> as SocketPointerMap;
 }
 
 implementation{

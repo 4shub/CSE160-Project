@@ -11,6 +11,7 @@
 #include "includes/CommandMsg.h"
 #include "includes/packet.h"
 #include "includes/socket.h"
+#include "includes/TCP_packet.h"
 #include "includes/RouterTable.h"
 
 configuration NodeC{
@@ -52,26 +53,29 @@ implementation {
 
     components new SimpleSendC(AM_PACK);
     Node.Sender -> SimpleSendC;
-    Node.Transport -> SimpleSendC;
+    TransportP.Sender -> SimpleSendC;
+
+    components WindowManagerP;
+    Node.WindowManager -> WindowManagerP;
+    TransportP.WindowManager -> WindowManagerP;
 
     components new ListC(socket_addr_t, 256) as ListC1;
     Node.Connections -> ListC1;
-    TransportC.WindowManager -> WindowManagerC;
+    TransportP.Connections -> ListC1;
 
-    components WindowManagerC;
-    Node.WindowManager -> WindowManagerC;
-    TransportC.WindowManager -> WindowManagerC;
+    components new HashmapC(window_info_t, 256) as HashmapC4;
+    WindowManagerP.WindowInfoList -> HashmapC4;
 
-    components LiveSocketList;
-    Node.LiveSocetList -> LiveSocketList;
-    TransportC.LiveSocetList -> LiveSocketList;
+    components LiveSocketListC;
+    Node.LiveSocketList -> LiveSocketListC;
+    TransportP.LiveSocketList -> LiveSocketListC;
 
     components new HashmapC(RouterTableRow, 256) as HashmapC1;
     Node.RouterTable -> HashmapC1;
-    TransportC.RouterTable -> HashmapC1;
+    TransportP.RouterTable -> HashmapC1;
 
-    components new HashmapC(socket_storage_t, MAX_NUM_SOCKETS) as HashmapC3;
+    components new HashmapC(socket_storage_t*, MAX_SOCKET_COUNT) as HashmapC3;
     Node.SocketPointerMap -> HashmapC3;
-    TransportC.SocketPointerMap -> HashmapC3;
-    WindowManagerC.SocketPointerMap -> HashmapC3;
+    TransportP.SocketPointerMap -> HashmapC3;
+    WindowManagerP.SocketPointerMap -> HashmapC3;
 }
