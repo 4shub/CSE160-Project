@@ -13,6 +13,7 @@
 #include "includes/command.h"
 #include "includes/packet.h"
 #include "includes/socket.h"
+#include "includes/TCP_packet.h"
 #include "includes/CommandMsg.h"
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
@@ -30,8 +31,6 @@ module Node{
    uses interface Hashmap<RouterTableRow> as RouterTable;
 
    uses interface Hashmap<uint16_t> as MessageStorageExplored; // stores unique message ids to prevent overflows for exploration
-
-
 
    uses interface Receive;
 
@@ -55,7 +54,7 @@ module Node{
 
    uses interface LiveSocketList;
 
-   uses interface SocketPointerMap;
+   uses interface Hashmap<socket_storage_t> as SocketPointerMap;
 }
 
 implementation{
@@ -388,7 +387,7 @@ implementation{
 
    event void CommandHandler.printDistanceVector(){}
 
-   event void CommandHandler.setTestServer(){
+   event void CommandHandler.setTestServer(uint8_t port){
         socket_t fd = call Transport.socket();
         socket_addr_t socketAddress;
 
@@ -416,7 +415,7 @@ implementation{
 
     event void AttemptConnection.fired() {
         socket_storage_t* tempSocket;
-        uint32_t* socketKeys = call Hashmap.getKeys();
+        uint32_t* socketKeys = call SocketPointerMap.getKeys();
 
         int i;
         // if we have connections on our server, we should accept this
@@ -435,22 +434,22 @@ implementation{
         }
     }
 
-   event void CommandHandler.setTestClient(){
-      socket_storage_t temp;
-      socket_addr_t socketAddress;
-      socket_t fd = call Transport.socket();
+    event void CommandHandler.setTestClient(uint8_t dest, uint8_t srcPort, uint8_t destPort, uint8_t *transfer) {
+        socket_storage_t temp;
+        socket_addr_t socketAddress;
+        socket_t fd = call Transport.socket();
 
-      uint16_t *transferSize = (uint16_t*) transfer;
+        uint16_t *transferSize = (uint16_t*) transfer;
 
-      socketAddress.srcAddr = TOS_NODE_ID;
-      socketAddress.srcPort = srcPort;
-      socketAddress.destAddr = dest;
-      socketAddress.destPort = destPort;
+        socketAddress.srcAddr = TOS_NODE_ID;
+        socketAddress.srcPort = srcPort;
+        socketAddress.destAddr = dest;
+        socketAddress.destPort = destPort;
 
-      call Transport.bind(fd, &socketAddress);
-      call Transport.connect(fd, &socketAddress);
-      call WindowManager.setTransferInfo(fd, transferSize[0]);
-      call ClientDataTimer.startPeriodic(2500);
+        call Transport.bind(fd, &socketAddress);
+        call Transport.connect(fd, &socketAddress);
+        call WindowManager.setWindowInfo(fd, transferSize[0]);
+        call ClientDataTimer.startPeriodic(2500);
    }
 
    event void ClientDataTimer.fired() {
@@ -494,7 +493,7 @@ implementation{
        }
     }
 
-    event void CommandHandler.closeClient(uint8_t dest, uint8_t srcPort, uint8_t destPort) {
+    event void CommandHandler.stopTestClient(uint8_t dest, uint8_t srcPort, uint8_t destPort) {
         socket_addr_t socketAddress;
         uint8_t socketIndex;
 

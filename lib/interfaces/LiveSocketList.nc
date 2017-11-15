@@ -1,3 +1,5 @@
+#include "../../includes/socket.h"
+
 interface LiveSocketList {
    command int insert(socket_t fd, socket_storage_t s);
    command socket_storage_t* getStore(uint16_t i);

@@ -6,8 +6,8 @@ enum {
    SYN_ACK           = 1,
    DATA              = 2,
    ACK               = 3,
-   DIE               = 4,
-   DIE_ACK           = 5,
+   FIN               = 4,
+   FIN_ACK           = 5,
    TCP_MAX_DATA_SIZE = PACKET_MAX_PAYLOAD_SIZE - 6
 };
 

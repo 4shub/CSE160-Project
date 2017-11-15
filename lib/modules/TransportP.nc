@@ -5,11 +5,11 @@
 module TransportP{
     provides interface Transport;
 
-    uses interface SocketPointerMap;
+    uses interface Hashmap<socket_storage_t> as SocketPointerMap;
 
-    uses interface RouterTable;
+    uses interface Hashmap<RouterTableRow> as RouterTable;
 
-    uses interface Connections;
+    uses interface List<socket_addr_t> as Connections;
 
     uses interface SimpleSend as Sender;
 
@@ -37,7 +37,7 @@ implementation{
           return socketAddress;
    }
 
-   void sendWithTimerPing(pack *Package)
+   void sendWithTimerPing(pack *Package);
 
    void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCPpacket_t *payload, uint8_t length);
 

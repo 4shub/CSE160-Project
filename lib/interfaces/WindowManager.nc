@@ -1,3 +1,6 @@
+#include "../../includes/socket.h"
+#include "../../includes/TCP_packet.h"
+
 interface WindowManager {
    command uint8_t receiveACK(socket_t fd, TCP_packet_t* payload);
    command error_t receiveData(socket_t fd, TCP_packet_t* payload);

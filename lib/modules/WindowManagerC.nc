@@ -22,7 +22,7 @@ window_info_t generateNewWindowDetails(uint16_t size, uint16_t prevValue) {
 module WindowManagerC {
    provides interface WindowManager;
 
-   uses interface SocketPointerMap;
+   uses interface Hashmap<socket_storage_t> as SocketPointerMap;
    uses interface Hashmap<window_info_t> as WindowInfoList;
 }
 
