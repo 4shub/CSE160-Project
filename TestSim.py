@@ -12,10 +12,13 @@ class TestSim:
     CMD_PING = 0
     CMD_NEIGHBOR_DUMP = 1
     CMD_ROUTE_DUMP=3
+    CMD_TEST_CLIENT=4
+    CMD_TEST_SERVER=5
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
     GENERAL_CHANNEL="general";
+    P3_CHANNEL="Project3TGen";
 
     # Project 1
     NEIGHBOR_CHANNEL="neighbor";
@@ -120,6 +123,12 @@ class TestSim:
     def routeDMP(self, destination):
         self.sendCMD(self.CMD_ROUTE_DUMP, destination, "routing command");
 
+    def setTestClient(self, source, destination, sourcePort, destinationPort, msg):
+        self.sendCMD(self.CMD_TEST_CLIENT, source, "{0}{1}{2}{3}".format(chr(destination),chr(sourcePort),chr(destinationPort),msg));
+
+    def setTestServer(self, source, port):
+        self.sendCMD(self.CMD_TEST_SERVER, source, "{0}".format(chr(port)))
+
     def addChannel(self, channelName, out=sys.stdout):
         print 'Adding Channel', channelName;
         self.t.addChannel(channelName, out);
@@ -132,23 +141,13 @@ def main():
     s.bootAll();
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
-
-
+    s.addChannel(s.P3_CHANNEL);
 
     s.runTime(250);
-    s.routeDMP(8);
-    s.runTime(25);
-    s.ping(2, 8, 'Hi');
-    s.runTime(5);
-    s.ping(1, 7, 'Hi');
-    s.runTime(5);
-    s.ping(4, 3, 'Hi');
-    s.runTime(5);
-    s.ping(2, 8, 'Hi');
-    s.runTime(5);
-    s.ping(2, 8, 'Hei');
-    s.runTime(5);
-
+    s.setTestServer(2, 20);
+    s.setTestServer(3, 20);
+    s.setTestClient(3, 2, 20, 20, 'data');
+    s.runTime(250);
 
 if __name__ == '__main__':
     main()

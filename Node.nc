@@ -391,6 +391,8 @@ implementation{
         socket_t fd = call Transport.socket();
         socket_addr_t socketAddress;
 
+        dbg("Project3TGen", "Init server at port-%d\n", port);
+
         if (fd != NULL_SOCKET) {
             socketAddress.srcAddr = TOS_NODE_ID;
             socketAddress.srcPort = port;
