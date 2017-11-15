@@ -39,9 +39,9 @@ implementation{
 
    void sendWithTimerPing(pack *Package);
 
-   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCPpacket_t *payload, uint8_t length);
+   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_packet_t *payload, uint8_t length);
 
-   void makeTCPPack(TCPpacket_t *Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t *data, uint8_t length);
+   void makeTCPPack(TCP_packet_t *Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t *data, uint8_t length);
 
    void sendWithTimerPing(pack *Package) {
        uint8_t finalDestination = Package -> dest;
@@ -209,7 +209,7 @@ implementation{
       uint16_t tempSequenceNum;
       socket_storage_t *socket;
       socket_addr_t tempAddr;
-      TCPpacket_t *payload = (TCPpacket_t*)package->payload;
+      TCP_packet_t *payload = (TCP_packet_t*)package->payload;
 
       socket_addr_t socketAddress = assignTempAddress(payload -> src,
                                                       payload -> dest,
@@ -404,7 +404,7 @@ implementation{
 
    }
 
-   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCPpacket_t *payload, uint8_t length) {
+   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_packet_t *payload, uint8_t length) {
      Package->src = src;
      Package->dest = dest;
      Package->TTL = TTL;
