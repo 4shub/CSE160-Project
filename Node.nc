@@ -495,14 +495,15 @@ implementation{
     }
 
     event void CommandHandler.closeClient(uint8_t dest, uint8_t srcPort, uint8_t destPort) {
-    socket_addr_t socketAddress;
-    uint8_t socketIndex;
+        socket_addr_t socketAddress;
+        uint8_t socketIndex;
 
         socketAddress.srcAddr = TOS_NODE_ID;
         socketAddress.srcPort = srcPort;
         socketAddress.destAddr = dest;
         socketAddress.destPort = destPort;
 
+        // find established socket and close it
         socketIndex = call LiveSocketList.search(&socketAddress, SOCK_ESTABLISHED);
 
         if (socketIndex != -1) {
