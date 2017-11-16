@@ -119,23 +119,6 @@ implementation {
          info = call WindowInfoList.get(fd);
          info.dataTransfer -= 1;
 
-         if (payload -> seq == socket -> lastByteAck) {
-             dbg(NEIGHBOR_CHANNEL,"A\n");
-            if (info.synTimeout > 0) {
-               info.synTimeout -= 1;
-            }
-
-            if (info.synTimeout == 0) {
-               socket->lastByteSent = socket->lastByteAck - 1;
-            }
-         } else {
-            info.synTimeout = 5;
-         }
-
-         info.window = payload->window;
-
-         socket->lastByteAck = payload->seq;
-
          call WindowInfoList.insert(fd, info);
 
          // temp until fix this issue
