@@ -552,7 +552,7 @@ implementation{
        socket_t fd = call Transport.socket();
        socket_addr_t socketAddress;
 
-       dbg(NEIGHBOR_CHANNEL,"Init server at port-%d\n", port);
+       dbg(NEIGHBOR_CHANNEL,"Init server at port-%d\n", DEFAULT_CHAT_PORT);
 
        if (fd != NULL_SOCKET) {
            socketAddress.srcAddr = TOS_NODE_ID;
@@ -601,7 +601,7 @@ implementation{
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
 
-       uint16_t *transferSize = (uint16_t*) message;
+       uint16_t *transferSize = (uint16_t*) username;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = port;

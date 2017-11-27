@@ -14,10 +14,11 @@ class TestSim:
     CMD_ROUTE_DUMP=3
     CMD_TEST_CLIENT=4
     CMD_TEST_SERVER=5
-	CMD_START_CHAT_SERVER=10
-	CMD_MSG=11
-	CMD_HELLO=12
-	CMD_WHISPER=13
+    CMD_START_CHAT_SERVER=10
+    CMD_MSG=11
+    CMD_HELLO=12
+    CMD_WHISPER=13
+    CMD_LIST_USER=14
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -133,10 +134,10 @@ class TestSim:
     def setTestServer(self, source, port):
         self.sendCMD(self.CMD_TEST_SERVER, source, "{0}".format(chr(port)))
 
-    def setTestServer(self, source):
-        self.sendCMD(self.CMD_START_CHAT_SERVER, source)
+    def startChatServer(self, source):
+        self.sendCMD(self.CMD_START_CHAT_SERVER, source, "chat server")
 
-    def hello(self, source, username, port):
+    def hello(self, source, username):
         self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(chr(username), port))
 
     def msg(self, source, message):
@@ -144,6 +145,9 @@ class TestSim:
 
     def whisper(self, source, username, message):
         self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(chr(username), chr(message)))
+
+    def listusr(self, source):
+        self.sendCMD(self.CMD_LIST_USER, source, "list users")
 
     def addChannel(self, channelName, out=sys.stdout):
         print 'Adding Channel', channelName;
@@ -164,19 +168,19 @@ def main():
     s.runTime(100);
     s.setTestClient(3, 2, 20, 21, 'triple e gold');
     s.runTime(500);
-    s.startChatServer();
+    s.startChatServer(1);
     s.runTime(100);
-    s.hello('joe');
+    s.hello(2, 'joe');
     s.runTime(250);
-    s.hello('blow');
+    s.hello(3, 'blow');
     s.runTime(250);
-    s.hello('schmo');
+    s.hello(4, 'schmo');
     s.runTime(250);
-    s.hello('joe');
+    s.whisper(3, 'joe', 'Hi Joe');
     s.runTime(250);
-    s.whisper('joe', 'Hi Joe');
+    s.msg(4, 'Hi Everyone!');
     s.runTime(250);
-    s.msg('Hi Everyone!');
+    s.listusr(1);
     s.runTime(250);
 
 if __name__ == '__main__':
