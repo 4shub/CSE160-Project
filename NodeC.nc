@@ -63,6 +63,9 @@ implementation {
     Node.Connections -> ListC1;
     TransportP.Connections -> ListC1;
 
+    components new HashmapC(uint8_t*, 256) as HashmapC5;
+    Node.Users -> HashmapC5;
+
     components new HashmapC(window_info_t, 256) as HashmapC4;
     WindowManagerP.WindowInfoList -> HashmapC4;
 

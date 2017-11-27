@@ -19,7 +19,7 @@
 #include "includes/channels.h"
 #include "includes/RouterTable.h"
 #include "includes/LinkState.h"
-
+#include "includes/chat.h"
 
 
 
@@ -48,6 +48,8 @@ module Node{
 
    uses interface List<socket_addr_t> as Connections;
 
+   uses interface Hashmap<uint8_t*> as Users;
+
    uses interface Transport;
 
    uses interface WindowManager;
@@ -63,7 +65,7 @@ implementation{
    pack sendPackage;
    pack ackPackage;
 
-
+   uint8_t * currentUser;
    LinkState currentNeighbors;
 
    int MAX_NODE_COUNT = 17;
@@ -546,9 +548,52 @@ implementation{
         }
     }
 
-   event void CommandHandler.setAppServer(){}
+   event void CommandHandler.startChatServer(){
+       socket_t fd = call Transport.socket();
+       socket_addr_t socketAddress;
 
-   event void CommandHandler.setAppClient(){}
+       dbg(NEIGHBOR_CHANNEL,"Init server at port-%d\n", port);
+
+       if (fd != NULL_SOCKET) {
+           socketAddress.srcAddr = TOS_NODE_ID;
+           socketAddress.srcPort = DEFAULT_CHAT_PORT;
+           socketAddress.destAddr = 0;
+           socketAddress.destPort = 0;
+
+           if (call Transport.bind(fd, &socketAddress) == SUCCESS ) {
+               dbg(NEIGHBOR_CHANNEL,"Chat server booted!\n");
+               call Transport.listen(fd);
+               call AttemptConnection.startPeriodic(1000);
+
+               return;
+           }
+
+           dbg(NEIGHBOR_CHANNEL,"Server could not be set up\n");
+           return;
+       }
+
+       dbg(NEIGHBOR_CHANNEL,"Server could not be set up\n");
+       return;
+   }
+
+   event void CommandHandler.hello(uint8_t *username){
+       socket_storage_t temp;
+       socket_addr_t socketAddress;
+       socket_t fd = call Transport.socket();
+
+       uint16_t *transferSize = (uint16_t*) username;
+
+       socketAddress.srcAddr = TOS_NODE_ID;
+       socketAddress.srcPort = DEFAULT_CHAT_PORT;
+       socketAddress.destAddr = DEFAULT_CHAT_NODE;
+       socketAddress.destPort = DEFAULT_CHAT_PORT;
+
+       call Transport.bind(fd, &socketAddress);
+       call Transport.connect(fd, &socketAddress);
+       call WindowManager.setWindowInfo(fd, transferSize[0]);
+       call ClientDataTimer.startPeriodic(2500);
+       return;
+   }
 
    void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length){
       Package->src = src;
