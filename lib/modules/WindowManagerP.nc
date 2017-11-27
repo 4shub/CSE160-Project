@@ -251,7 +251,7 @@ implementation {
             dbg("Project3TGen", "data\n=====\n");
             memcpy(&tempBuff1, &tempBuff2, bytesInBuffer);
             for (i = 0; i < bytesInBuffer / 2; i++) {
-               dbg("Project3TGen", "%d, ", tempBuff1[i]);
+               dbg("Project3TGen", "%d, \n", tempBuff1[i]);
             }
 
             dbg("Project3TGen", "\n");

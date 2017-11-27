@@ -83,6 +83,26 @@ implementation{
                 signal CommandHandler.stopTestClient(buff[0], buff[1], buff[2]);
                 break;
 
+            case CMD_START_CHAT_SERVER:
+                dbg(COMMAND_CHANNEL, "Command Type: Start chat server\n");
+                signal CommandHandler.startChatServer();
+                break;
+
+            case CMD_HELLO:
+                dbg(COMMAND_CHANNEL, "Command Type: Hello\n");
+                signal CommandHandler.hello(buff[0], buff[1]);
+                break;
+
+            case CMD_MSG:
+                dbg(COMMAND_CHANNEL, "Command Type: Message\n");
+                signal CommandHandler.hello(buff[0]);
+                break;
+
+            case CMD_WHISPER:
+                dbg(COMMAND_CHANNEL, "Command Type: Whistper\n");
+                signal CommandHandler.hello(buff[0], buff[1]);
+                break;
+
             default:
                 dbg(COMMAND_CHANNEL, "CMD_ERROR: \"%d\" does not match any known commands.\n", msg->id);
                 break;

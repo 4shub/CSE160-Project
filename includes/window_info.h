@@ -11,14 +11,14 @@ enum {
 };
 
 typedef struct{
-    bool completed; // endOfDataReached
-    uint16_t size; // transferSize
-    uint16_t prevValue; // lastValue
-    uint8_t dataTransfer; // inFlight
-    uint8_t maxDataTransfer; // maxInFlight
-    uint8_t timeout; // closeTime
-    uint8_t synTimeout; // timeWithoutAck
-    uint8_t window; // advertisedWindow
+    bool completed;
+    uint16_t size;
+    uint16_t prevValue;
+    uint8_t dataTransfer;
+    uint8_t maxDataTransfer;
+    uint8_t timeout;
+    uint8_t synTimeout;
+    uint8_t window;
     uint8_t bytesInStream;
 } window_info_t;
 

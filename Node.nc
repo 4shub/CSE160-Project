@@ -576,7 +576,46 @@ implementation{
        return;
    }
 
-   event void CommandHandler.hello(uint8_t *username){
+   event void CommandHandler.msg(uint8_t *message){
+       socket_storage_t temp;
+       socket_addr_t socketAddress;
+       socket_t fd = call Transport.socket();
+
+       uint16_t *transferSize = (uint16_t*) message;
+
+       socketAddress.srcAddr = TOS_NODE_ID;
+       socketAddress.srcPort = DEFAULT_CHAT_PORT;
+       socketAddress.destAddr = DEFAULT_CHAT_NODE;
+       socketAddress.destPort = DEFAULT_CHAT_PORT;
+
+       call Transport.bind(fd, &socketAddress);
+       call Transport.connect(fd, &socketAddress);
+       call WindowManager.setWindowInfo(fd, transferSize[0]);
+       call ClientDataTimer.startPeriodic(2500);
+       return;
+   }
+
+
+   event void CommandHandler.hello(uint8_t *username, uint8_t port){
+       socket_storage_t temp;
+       socket_addr_t socketAddress;
+       socket_t fd = call Transport.socket();
+
+       uint16_t *transferSize = (uint16_t*) message;
+
+       socketAddress.srcAddr = TOS_NODE_ID;
+       socketAddress.srcPort = port;
+       socketAddress.destAddr = DEFAULT_CHAT_NODE;
+       socketAddress.destPort = DEFAULT_CHAT_PORT + 2;
+
+       call Transport.bind(fd, &socketAddress);
+       call Transport.connect(fd, &socketAddress);
+       call WindowManager.setWindowInfo(fd, transferSize[0]);
+       call ClientDataTimer.startPeriodic(2500);
+       return;
+   }
+
+   event void CommandHandler.whisper(uint8_t *username, uint8_t *message){
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
@@ -586,7 +625,7 @@ implementation{
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
        socketAddress.destAddr = DEFAULT_CHAT_NODE;
-       socketAddress.destPort = DEFAULT_CHAT_PORT;
+       socketAddress.destPort = DEFAULT_CHAT_PORT + 1;
 
        call Transport.bind(fd, &socketAddress);
        call Transport.connect(fd, &socketAddress);
