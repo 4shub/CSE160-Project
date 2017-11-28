@@ -164,7 +164,7 @@ implementation{
         // CASE: If we arrive at the destination
         if(TOS_NODE_ID == recievedPackage -> dest && !call MessageStorageExplored.contains(messageHash)) {
 
-            //dbg(GENERAL_CHANNEL, "ARRIVED AT DESTINATION! YAY!\n\n");
+            dbg(GENERAL_CHANNEL, "ARRIVED AT DESTINATION! YAY!\n\n");
             dbg(NEIGHBOR_CHANNEL, "Your message is: %s!\n\n\n", recievedPackage -> payload);
 
             call MessageStorageExplored.insert(messageHash, 1);
@@ -606,7 +606,7 @@ implementation{
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = port;
        socketAddress.destAddr = DEFAULT_CHAT_NODE;
-       socketAddress.destPort = DEFAULT_CHAT_PORT + 2;
+       socketAddress.destPort = DEFAULT_CHAT_PORT;
 
        call Transport.bind(fd, &socketAddress);
        call Transport.connect(fd, &socketAddress);
@@ -625,7 +625,7 @@ implementation{
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
        socketAddress.destAddr = DEFAULT_CHAT_NODE;
-       socketAddress.destPort = DEFAULT_CHAT_PORT + 1;
+       socketAddress.destPort = DEFAULT_CHAT_PORT;
 
        call Transport.bind(fd, &socketAddress);
        call Transport.connect(fd, &socketAddress);
