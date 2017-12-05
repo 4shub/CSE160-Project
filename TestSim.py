@@ -166,7 +166,7 @@ def main():
     s.runTime(250);
     s.setTestServer(2, 20);
     s.runTime(100);
-    s.setTestClient(3, 2, 20, 21, 'triple e gold');
+    s.setTestClient(3, 2, 20, 21, 'data');
     s.runTime(500);
     s.startChatServer(1);
     s.runTime(100);

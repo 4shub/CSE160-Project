@@ -580,11 +580,13 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
-       chatData chat;
-                chat.message = *message;
-                chat.type = 2;
+       uint16_t* transferSize;
 
-       uint16_t *transferSize = uint16_t &chat;
+       chatData* chat;
+                chat -> message = message;
+                chat -> type = 1;
+
+      transferSize = CHAT_TYPE_MSG;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
@@ -603,12 +605,13 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
+       uint16_t* transferSize;
 
-       chatData chat;
+       chatData* chat;
                 chat -> username = username;
-                chat -> type = 1;
+                chat -> type = CHAT_TYPE_HELLO;
 
-       uint16_t *transferSize = (uint16_t&) chat;
+       transferSize = chat;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = port;
@@ -626,12 +629,14 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
-       chatData chat;
+       uint16_t* transferSize;
+
+       chatData* chat;
                 chat -> username = username;
                 chat -> message = message;
-                chat -> type = 3;
+                chat -> type = CHAT_TYPE_WHISPER;
 
-       uint16_t *transferSize = (uint16_t*) chat;
+       transferSize = chat;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;

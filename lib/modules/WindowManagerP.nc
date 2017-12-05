@@ -157,6 +157,8 @@ implementation {
             socket->lastByteRec = payload->seq;
             socket->lastByteExpected = payload->seq + 1;
 
+            dbg("Project3TGen", "Data received Successfully\n");
+
             return SUCCESS;
          }
 
@@ -232,9 +234,8 @@ implementation {
    command void WindowManager.readData(socket_t fd) {
 
       int bytesInBuffer;
-      uint16_t tempBuff1[5];
-      uint8_t tempBuff2[10];
-      uint8_t tempBuff3[SOCKET_RECEIVE_BUFFER_SIZE];
+      uint16_t tempBuff1[SOCKET_RECEIVE_BUFFER_SIZE];
+      uint8_t tempBuff2[SOCKET_RECEIVE_BUFFER_SIZE];
 
       int h, k;
 
@@ -251,7 +252,7 @@ implementation {
             dbg("Project3TGen", "data\n=====\n");
             memcpy(&tempBuff1, &tempBuff2, bytesInBuffer);
             for (i = 0; i < bytesInBuffer / 2; i++) {
-               dbg("Project3TGen", "%d, \n", tempBuff1[i]);
+               dbg("Project3TGen", "%c, \n", &tempBuff2[i]);
             }
 
             dbg("Project3TGen", "\n");
