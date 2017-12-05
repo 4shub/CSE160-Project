@@ -18,7 +18,7 @@ class TestSim:
     CMD_MSG=11
     CMD_HELLO=12
     CMD_WHISPER=13
-    CMD_LIST_USERS=14
+    CMD_LIST_USER=14
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -140,7 +140,7 @@ class TestSim:
     def hello(self, source, username, port):
         self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(username, chr(port)))
 
-    def msg(self, source, message):
+    def msge(self, source, message):
         self.sendCMD(self.CMD_MSG, source, "{0}".format(message))
 
     def whisper(self, source, username, message):
@@ -166,7 +166,7 @@ def main():
     s.runTime(250);
     s.setTestServer(2, 20);
     s.runTime(100);
-    s.setTestClient(3, 2, 20, 21, 'data');
+    s.setTestClient(3, 2, 20, 21, 'ABC');
     s.runTime(500);
     s.startChatServer(1);
     s.runTime(100);
@@ -174,7 +174,7 @@ def main():
     s.runTime(250);
     s.whisper(5, 'joe', 'Hi Joe');
     s.runTime(250);
-    s.msg(5, 'Hi Everyone!');
+    s.msge(5, 'Hi Everyone!');
     s.runTime(250);
     s.listusr(1);
     s.runTime(250);

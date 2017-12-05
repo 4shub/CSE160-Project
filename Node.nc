@@ -580,13 +580,9 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
-       uint16_t* transferSize;
+       uint16_t *transferSize = (uint16_t*) message;
 
-       chatData* chat;
-                chat -> message = message;
-                chat -> type = 1;
-
-      transferSize = CHAT_TYPE_MSG;
+       dbg(NEIGHBOR_CHANNEL,"To everyone: %s\n", message);
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
@@ -605,13 +601,9 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
-       uint16_t* transferSize;
+       uint16_t *transferSize = (uint16_t*) username;
 
-       chatData* chat;
-                chat -> username = username;
-                chat -> type = CHAT_TYPE_HELLO;
-
-       transferSize = chat;
+       dbg(NEIGHBOR_CHANNEL,"<%s> has entered\n", username);
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = port;
@@ -629,14 +621,10 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
-       uint16_t* transferSize;
 
-       chatData* chat;
-                chat -> username = username;
-                chat -> message = message;
-                chat -> type = CHAT_TYPE_WHISPER;
+       uint16_t *transferSize = (uint16_t*) message;
 
-       transferSize = chat;
+       dbg(NEIGHBOR_CHANNEL,"<%s>: %s\n", username, message);
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
