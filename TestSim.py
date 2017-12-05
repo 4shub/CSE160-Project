@@ -18,7 +18,7 @@ class TestSim:
     CMD_MSG=11
     CMD_HELLO=12
     CMD_WHISPER=13
-    CMD_LIST_USER=14
+    CMD_LIST_USERS=14
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -137,14 +137,14 @@ class TestSim:
     def startChatServer(self, source):
         self.sendCMD(self.CMD_START_CHAT_SERVER, source, "chat server")
 
-    def hello(self, source, username):
-        self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(chr(username), port))
+    def hello(self, source, username, port):
+        self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(username, chr(port)))
 
     def msg(self, source, message):
-        self.sendCMD(self.CMD_MSG, source, "{0}".format(chr(message)))
+        self.sendCMD(self.CMD_MSG, source, "{0}".format(message))
 
     def whisper(self, source, username, message):
-        self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(chr(username), chr(message)))
+        self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(username, message))
 
     def listusr(self, source):
         self.sendCMD(self.CMD_LIST_USER, source, "list users")
@@ -170,15 +170,11 @@ def main():
     s.runTime(500);
     s.startChatServer(1);
     s.runTime(100);
-    s.hello(2, 'joe');
+    s.hello(5, 'joe', 42);
     s.runTime(250);
-    s.hello(3, 'blow');
+    s.whisper(5, 'joe', 'Hi Joe');
     s.runTime(250);
-    s.hello(4, 'schmo');
-    s.runTime(250);
-    s.whisper(3, 'joe', 'Hi Joe');
-    s.runTime(250);
-    s.msg(4, 'Hi Everyone!');
+    s.msg(5, 'Hi Everyone!');
     s.runTime(250);
     s.listusr(1);
     s.runTime(250);

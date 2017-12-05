@@ -580,8 +580,11 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
+       chatData chat;
+                chat.message = *message;
+                chat.type = 2;
 
-       uint16_t *transferSize = (uint16_t*) message;
+       uint16_t *transferSize = uint16_t &chat;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
@@ -601,7 +604,11 @@ implementation{
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
 
-       uint16_t *transferSize = (uint16_t*) username;
+       chatData chat;
+                chat -> username = username;
+                chat -> type = 1;
+
+       uint16_t *transferSize = (uint16_t&) chat;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = port;
@@ -619,8 +626,12 @@ implementation{
        socket_storage_t temp;
        socket_addr_t socketAddress;
        socket_t fd = call Transport.socket();
+       chatData chat;
+                chat -> username = username;
+                chat -> message = message;
+                chat -> type = 3;
 
-       uint16_t *transferSize = (uint16_t*) username;
+       uint16_t *transferSize = (uint16_t*) chat;
 
        socketAddress.srcAddr = TOS_NODE_ID;
        socketAddress.srcPort = DEFAULT_CHAT_PORT;
@@ -637,7 +648,7 @@ implementation{
    event void CommandHandler.listUsers(){
        int i = 0;
 
-       for(i = 0; i < 256, i++) {
+       for(i = 0; i < 256; i++) {
            if (call Users.contains(i)) {
                dbg(NEIGHBOR_CHANNEL,"User: %d\n", call Users.get(i));
            }

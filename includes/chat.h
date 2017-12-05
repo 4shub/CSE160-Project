@@ -4,6 +4,16 @@
 enum{
     DEFAULT_CHAT_NODE=1,
     DEFAULT_CHAT_PORT=41
+    CHAT_TYPE_MSG=2,
+    CHAT_TYPE_HELLO=1,
+    CHAT_TYPE_WHISPER=3,
 };
+
+typedef struct chatData {
+    uint16_t type;
+    uint16_t* message;
+    uint16_t* username;
+} chatData;
+
 
 #endif
