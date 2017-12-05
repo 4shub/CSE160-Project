@@ -643,7 +643,7 @@ implementation{
 
        for(i = 0; i < 256; i++) {
            if (call Users.contains(i)) {
-               dbg(NEIGHBOR_CHANNEL,"User: %d\n", call Users.get(i));
+               dbg(NEIGHBOR_CHANNEL,"User: %s\n", call Users.get(i));
            }
        }
    }
